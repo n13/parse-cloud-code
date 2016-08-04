@@ -36,9 +36,16 @@ function sendUserToken()
  * @param {Object} response
  * @returns {String} sessionToken
  */
-function sendUserToken(request, response) {
+function sendToken(request, response) {
+
     // Simple syntax to create a new subclass of Parse.Object.
     var Token = Parse.Object.extend("Token");
+
+    var query = new Parse.Query("Token");
+    query.equalTo("email", request.params.email);
+    query.find().then(function(results) {
+        results[0].delete();
+    });
 
     // Create a new token.
     var token = new Token();
@@ -46,11 +53,11 @@ function sendUserToken(request, response) {
     token.set("email", request.params.email);
 
     token.save(null, {
-        success: function(gameScore) {
+        success: function(token) {
             // Execute any logic that should take place after the object is saved.
-            alert('New object created with objectId: ' + gameScore.id);
+            alert('New object created with objectId: ' + token.id);
         },
-        error: function(gameScore, error) {
+        error: function(token, error) {
             // Execute any logic that should take place if the save fails.
             // error is a Parse.Error with an error code and message.
             alert('Failed to create new object, with error code: ' + error.message);
@@ -114,6 +121,7 @@ function signInWithTwitch(request, response) {
  * @param {Number} expiresTime
  * @returns {Promise<String>} sessionToken
  */
+// Nik: TODO modify this this to create a valid user session from a token
 function signInWithTwitchPromise(user, accessToken, expiresTime) {
     Parse.Cloud.useMasterKey();
 
@@ -185,4 +193,4 @@ function signInWithTwitchPromise(user, accessToken, expiresTime) {
     });
 }
 
-defineParseCloud(signInWithTwitch);
+defineParseCloud(sendToken);
